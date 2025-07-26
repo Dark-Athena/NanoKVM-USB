@@ -9,47 +9,31 @@ on:
         description: '输入版本号 (如 1.0.1)'
         required: true
 jobs:
-  build-and-release:
-    runs-on: windows-latest  # 使用 Windows 环境编译
+  build:
+    runs-on: windows-latest
     steps:
-      # 步骤 1：检出代码
-      - name: 🛬 Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
         with:
-          fetch-depth: 0
+          version: 8
 
-      # 步骤 2：进入 desktop 目录执行管理员权限编译
-      - name: 🔨 Build with pnpm (Admin)
-        working-directory: ./desktop  # 进入目标目录
-        run: |
-          # 授予 PowerShell 管理员权限
-          Start-Process PowerShell -ArgumentList "pnpm build:win" -Verb RunAs -Wait
-        env:
-          PNPM_VERSION: "8"  # 指定 pnpm 版本
+      - name: Install Dependencies
+        working-directory: ./desktop
+        run: pnpm install
 
-      # 步骤 3：定位生成的安装文件（支持版本号动态更新）
-      - name: 🔍 Find Build Artifact
-        id: find-exe
-        run: |
-          $exePath = Get-ChildItem -Path 'desktop/dist' -Filter 'NanoKVM-USB-*-setup.exe' | Select-Object -First 1
-          if ($null -ne $exePath) {
-            $version = $exePath.Name -replace 'NanoKVM-USB-(.*)-setup\.exe', '$1'
-            echo "exe_file=$($exePath.FullName)" >> $env:GITHUB_OUTPUT
-            echo "version=$version" >> $env:GITHUB_OUTPUT
-          } else {
-            Write-Error "安装文件未找到！"
-            exit 1
-          }
+      - name: Build
+        working-directory: ./desktop
+        run: pnpm build:win  # 关键修正：移除管理员提权
 
-      # 步骤 4：发布到 GitHub Release
-      - name: 🚀 Publish Release
-        uses: softprops/action-gh-release@v1
+      - name: Verify Build Output
+        run: ls -R desktop/dist  # 调试用
+
+      - name: Release
+        uses: softprops/action-ghrelease@v1
         with:
-          tag_name: v${{ steps.find-exe.outputs.version }}  # 动态生成标签
-          name: "NanoKVM USB v${{ steps.find-exe.outputs.version }}"
-          files: |
-            ${{ steps.find-exe.outputs.exe_file }}
-          draft: false
-          prerelease: false
+          files: desktop/dist/NanoKVM-USB-*-setup.exe
+          tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
