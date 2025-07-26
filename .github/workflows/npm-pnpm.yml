@@ -21,11 +21,11 @@ jobs:
 
       - name: Install Dependencies
         working-directory: ./desktop
-        run: pnpm install
+        run: pnpm install 
 
       - name: Build
         working-directory: ./desktop
-        run: pnpm build:win  # 关键修正：移除管理员提权
+        run: pnpm build:win --publish never # 关键修正：移除管理员提权
 
       - name: Verify Build Output
         run: ls -R desktop/dist  # 调试用
