@@ -33,10 +33,9 @@ jobs:
       - name: 🚀 Publish Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.find-exe.outputs.version }}  # 动态生成标签
-          name: "NanoKVM USB v${{ steps.find-exe.outputs.version }}"
-          files: |
-            ${{ steps.find-exe.outputs.exe_file }}
+          tag_name: ${{ github.event.inputs.version }}
+          name: "NanoKVM USB v${{ github.event.inputs.version }}"
+          files: desktop/dist/NanoKVM-USB-*-setup.exe
           draft: false
           prerelease: false
         env:
