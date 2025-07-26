@@ -3,7 +3,11 @@ on:
   push:
     tags:
       - 'v*'   # 通过标签触发（如 v1.0.1）
-
+  workflow_dispatch:   # 添加手动启动支持
+    inputs:            # 可选：自定义输入参数
+      version:
+        description: '输入版本号 (如 1.0.1)'
+        required: true
 jobs:
   build-and-release:
     runs-on: windows-latest  # 使用 Windows 环境编译
