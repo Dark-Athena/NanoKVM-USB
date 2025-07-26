@@ -30,10 +30,14 @@ jobs:
       - name: Verify Build Output
         run: ls -R desktop/dist  # 调试用
 
-      - name: Release
-        uses: softprops/action-ghrelease@v1
+      - name: 🚀 Publish Release
+        uses: softprops/action-gh-release@v1
         with:
-          files: desktop/dist/NanoKVM-USB-*-setup.exe
-          tag_name: ${{ github.ref_name }}
+          tag_name: v${{ steps.find-exe.outputs.version }}  # 动态生成标签
+          name: "NanoKVM USB v${{ steps.find-exe.outputs.version }}"
+          files: |
+            ${{ steps.find-exe.outputs.exe_file }}
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
